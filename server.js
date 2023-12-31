@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.post('/addUser', async (req, res) => {
   let _client = null;
   try {
-    const { botId, accessToken } = req.body;
+    const { botId, accessToken, profile } = req.body;
 
     const client = new MongoClient(mongoURI);
     _client = client;
@@ -28,7 +28,8 @@ app.post('/addUser', async (req, res) => {
 
     const document = {
       _id: botId,
-      accessToken: accessToken
+      accessToken: accessToken,
+      profile: profile
     }
 
     await collection.insertOne(document);
