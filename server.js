@@ -36,7 +36,12 @@ app.post('/addUser', async (req, res) => {
     res.json({ success: true, message: 'User added to the database.' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: `Internal Server Error ${error}` });
+    if(error.code == 11000){
+      // duplicate user error
+      res.json({success: true, message: 'User already in database'})
+    } else {
+      res.status(500).json({ success: false, message: `Internal Server Error ${error}` });
+    }
   } finally {
     if(_client)
       _client.close();
