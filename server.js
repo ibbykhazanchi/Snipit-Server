@@ -12,11 +12,14 @@ const mongoURI = process.env.MONGO_URI
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
 
-// Endpoint to add a bot to the database
-app.post('/addAccount', async (req, res) => {
+// Endpoint to add a user to the database
+app.post('/addUser', async (req, res) => {
   let _client = null;
   try {
     const { botId, accessToken } = req.body;
+
+    console.log(botId)
+    console.log(accessToken)
 
     const client = new MongoClient(mongoURI);
     _client = client;
@@ -24,7 +27,7 @@ app.post('/addAccount', async (req, res) => {
     await client.connect();
 
     const database = client.db("Snipit");
-    const collection = database.collection('accounts');
+    const collection = database.collection('users');
 
     const document = {
       _id: parseInt(botId),
@@ -33,7 +36,7 @@ app.post('/addAccount', async (req, res) => {
 
     await collection.insertOne(document);
 
-    res.json({ success: true, message: 'Bot added to the database.' });
+    res.json({ success: true, message: 'User added to the database.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: `Internal Server Error ${error}` });
@@ -44,7 +47,7 @@ app.post('/addAccount', async (req, res) => {
 });
 
 // Endpoint to get an account by bot_id
-app.get('/getAccount/:botId', async (req, res) => {
+app.get('/getUser/:botId', async (req, res) => {
   const botId = req.params.botId;
   if(!botId){
     return res.status(400).json({ success: false, message: 'Incorrect botId provided' });
@@ -57,12 +60,12 @@ app.get('/getAccount/:botId', async (req, res) => {
     await client.connect();
 
     const database = client.db("Snipit");
-    const collection = database.collection('accounts');
+    const collection = database.collection('users');
 
     const parsedBotId = parseInt(botId)
     const account = await collection.findOne({ _id: parsedBotId});
     if (!account) {
-      return res.status(404).json({ success: false, message: 'Account not found.' });
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
     res.json({ success: true, account: account });
   } catch (error) {
@@ -75,7 +78,7 @@ app.get('/getAccount/:botId', async (req, res) => {
 });
 
 // Endpoint to delete an account by bot_id
-app.delete('/deleteAccount/:botId', async (req, res) => {
+app.delete('/deleteUser/:botId', async (req, res) => {
   const botId = req.params.botId;
   if(!botId){
     return res.status(400).json({success: false, message: "Incorrect botId provided"})
@@ -89,12 +92,12 @@ app.delete('/deleteAccount/:botId', async (req, res) => {
     await client.connect();
 
     const database = client.db("Snipit");
-    const collection = database.collection('accounts');
+    const collection = database.collection('users');
 
     const parsedBotId = parseInt(botId)
 
     await collection.deleteOne({_id: parsedBotId})
-    res.json({ success: true, message: `deleted account ${parsedBotId}`});
+    res.json({ success: true, message: `deleted user ${parsedBotId}`});
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
