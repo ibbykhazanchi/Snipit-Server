@@ -18,9 +18,6 @@ app.post('/addUser', async (req, res) => {
   try {
     const { botId, accessToken } = req.body;
 
-    console.log(botId)
-    console.log(accessToken)
-
     const client = new MongoClient(mongoURI);
     _client = client;
 
@@ -30,7 +27,7 @@ app.post('/addUser', async (req, res) => {
     const collection = database.collection('users');
 
     const document = {
-      _id: parseInt(botId),
+      _id: botId,
       accessToken: accessToken
     }
 
@@ -62,8 +59,7 @@ app.get('/getUser/:botId', async (req, res) => {
     const database = client.db("Snipit");
     const collection = database.collection('users');
 
-    const parsedBotId = parseInt(botId)
-    const account = await collection.findOne({ _id: parsedBotId});
+    const account = await collection.findOne({ _id: botId});
     if (!account) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
@@ -94,9 +90,7 @@ app.delete('/deleteUser/:botId', async (req, res) => {
     const database = client.db("Snipit");
     const collection = database.collection('users');
 
-    const parsedBotId = parseInt(botId)
-
-    await collection.deleteOne({_id: parsedBotId})
+    await collection.deleteOne({_id: botId})
     res.json({ success: true, message: `deleted user ${parsedBotId}`});
   } catch (error) {
     console.error(error);
