@@ -1,2 +1,2 @@
-# Snipit-Server
-The server to Snip.it
+# notate service
+The server to notate
