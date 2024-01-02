@@ -1,6 +1,7 @@
 const express = require("express");
 const { MongoClient } = require("mongodb");
 const bodyParser = require("body-parser");
+const utils = require("./utils");
 require("dotenv").config();
 
 const app = express();
@@ -108,6 +109,56 @@ app.delete("/deleteUser/:botId", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   } finally {
     _client.close();
+  }
+});
+
+app.post("/authenticateWithNotion/:code", async (req, res) => {
+  const code = req.params.code;
+  if (!code) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Incorrect code provided" });
+  }
+
+  try {
+    const clientId = process.env.NOTION_CLIENT_ID;
+    const clientSecret = process.env.NOTION_CLIENT_SECRET;
+    const redirectURL = process.env.NOTION_REDIRECT_URL;
+
+    const encoded = Buffer.from(`${clientId}:${clientSecret}`).toString(
+      "base64"
+    );
+
+    const response = await fetch("https://api.notion.com/v1/oauth/token", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Basic ${encoded}`,
+      },
+      body: JSON.stringify({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: redirectURL,
+      }),
+    });
+
+    const data = await response.json();
+    const { bot_id, access_token, owner } = data;
+    const ownerProfile = utils.createOwnerProfile(owner);
+    res.json({
+      success: true,
+      data: {
+        bot_id: bot_id,
+        access_token: access_token,
+        profile: ownerProfile,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: `Internal Server Error ${error}` });
   }
 });
 
